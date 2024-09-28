@@ -7,18 +7,22 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import toast, { Toaster } from 'react-hot-toast';
 import { setIsloading } from '../Slices/ProductListSlice';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearching, setisSearching] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   const ProductList = useSelector((store)=>store.products?.ProductList)
-  const isLoading = useSelector((store)=>store.products?.isLoading)
+
+
+
 
 
   const dispatch = useDispatch()
+  const naviage = useNavigate();
 
   const cat = ['All Categories'];
 
@@ -31,7 +35,7 @@ const Navbar = () => {
       const response = await axios.get(`https://dummyjson.com/products`)
       console.log(response.data.products);
       dispatch(setProductList(response.data.products))
-  
+
      const catdata =  response.data.products.map((ele,i)=>{
           return ele.category
      })
@@ -55,7 +59,12 @@ const Navbar = () => {
 
   }
 
-  const getCategorisedProduct = async(selectedCat)=>{
+  const getCategorisedProduct = async()=>{
+
+    if(selectedCategory === 'All Categories'){
+      getAllProducts()
+      return;
+    }
         try{
           dispatch(setIsloading(true))
           const response = await axios.get(`https://dummyjson.com/products/category/${selectedCategory}`)
@@ -70,24 +79,62 @@ const Navbar = () => {
 
   }
 
-  useEffect(()=>{
-    
+  const getSearchedProduct = async()=>{
+
+
+      try{
+        dispatch(setIsloading(true))
+        const response  = await axios.get(`https://dummyjson.com/products/search?q=${searchTerm}`)
+        console.log(response.data.products);
+        dispatch(setProductList(response.data.products))
+      }catch(e){
+          toast.error("Error while fetch categorised data")
+      }finally{
+        dispatch(setIsloading(false))
+      }
+      
+  } 
+
+  useEffect(()=>{   
+
     if(selectedCategory === 'All Categories' || selectedCategory === ''){
+      console.log("fir");
+      
       getAllProducts()
     }else{
-      getCategorisedProduct(selectedCategory)
+      getCategorisedProduct()
     }
     
   },[selectedCategory])
 
 
+  useEffect(()=>{
+    if(searchTerm !== '' && searchTerm !== " "){
+      console.log("a");
+      let timer = setTimeout(()=>{
+        getSearchedProduct()
+      },500)
+      return ()=> clearTimeout(timer); 
+  }else if(selectedCategory !== ''){
+    console.log("b");
+    getCategorisedProduct()
+  }else if(isSearching && searchTerm === ''){
+    console.log("c");
+    getAllProducts() 
+  }
+  },[searchTerm])
+
+
+
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
+    naviage("/")
+    {!isSearching && setisSearching(true)}
   };
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
-    console.log(category);
+    naviage("/")    
     
     setIsDropdownOpen(false); // Close the dropdown after selection
   };
@@ -99,9 +146,10 @@ const Navbar = () => {
           
           {/* Left Side - Home & Logo */}
           <div className="flex items-center space-x-4">
-            <a href="#home" className="hover:text-gray-300 flex items-center">
+           
+            <Link to="/"> <button className="hover:text-gray-300 flex items-center">
               <FaHome className="mr-1" /> Home
-            </a>
+            </button></Link>
             {/* <h1 className="text-2xl font-bold">MyApp</h1> */}
           </div>
 
@@ -115,7 +163,7 @@ const Navbar = () => {
                 value={searchTerm}
                 onChange={handleSearchChange}
               />
-              <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer" onClick={getSearchedProduct} />
             </div>
           </div>
 
@@ -143,12 +191,12 @@ const Navbar = () => {
                 </div>
               )}
             </div>
-            <a href="#wishlist" className="hover:text-gray-300 flex items-center">
+            <button  className="hover:text-gray-300 flex items-center">
               <FaHeart className="mr-1" /> Wishlist
-            </a>
-            <a href="#profile" className="hover:text-gray-300 flex items-center">
+            </button>
+            <button  className="hover:text-gray-300 flex items-center">
               <FaUser className="mr-1" /> Profile
-            </a>
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -179,9 +227,10 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-blue-800 space-y-2">
-          <a href="#home" className="block px-4 py-2 text-sm text-white hover:bg-blue-700">
+        
+          <Link to="/">  <button className="block px-4 py-2 text-sm text-white hover:bg-blue-700">
             <FaHome className="mr-1 inline" /> Home
-          </a>
+          </button></Link>
 
           {/* Search bar for mobile */}
           <div className="block px-4 py-2">
@@ -193,7 +242,7 @@ const Navbar = () => {
                 value={searchTerm}
                 onChange={handleSearchChange}
               />
-              <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer" onClick={getSearchedProduct} />
             </div>
           </div>
 
@@ -221,12 +270,12 @@ const Navbar = () => {
             )}
           </div>
 
-          <a href="#wishlist" className="block px-4 py-2 text-sm text-white hover:bg-blue-700">
+          <button className="block px-4 py-2 text-sm text-white hover:bg-blue-700">
             <FaHeart className="mr-1 inline" /> Wishlist
-          </a>
-          <a href="#profile" className="block px-4 py-2 text-sm text-white hover:bg-blue-700">
+          </button>
+          <button className="block px-4 py-2 text-sm text-white hover:bg-blue-700">
             <FaUser className="mr-1 inline" /> Profile
-          </a>
+          </button>
         </div>
       )}
     </nav>

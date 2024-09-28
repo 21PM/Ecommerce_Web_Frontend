@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 // const productsdata = [
 //     {
@@ -70,10 +71,7 @@ const ProductList = () => {
 
   const ProductList = useSelector((store)=>store.products?.ProductList)
   const isLoading = useSelector((store)=>store.products?.isLoading)
-  
-  useEffect(()=>{
-
-  },[])
+  const navigate = useNavigate();
 
 
   const handleBuyNow = (id) => {
@@ -83,6 +81,11 @@ const ProductList = () => {
   const handleAddToWishlist = (id) => {
     console.log(`Added to Wishlist: Product ID: ${id}`);
   };
+
+  const handleProductClick = (id) => {
+    navigate(`/product/${id}`); // Navigate to ProductwithID with the product ID
+  };
+
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 place-items-center">
@@ -95,7 +98,9 @@ const ProductList = () => {
       }
 
       {ProductList?.map((product) => (
-        <div key={product.id} className="max-w-xs sm:max-w-sm md:max-w-md min-h-full bg-white rounded-lg shadow-md overflow-hidden">
+        <div 
+        onClick={() => handleProductClick(product.id)}
+        key={product.id} className="max-w-xs cursor-pointer sm:max-w-sm md:max-w-md min-h-full bg-white rounded-lg shadow-md overflow-hidden">
           <div className="h-52 w-full bg-green-500 overflow-hidden flex justify-center items-center">
             <img 
               src={product.images[0]} 

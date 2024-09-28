@@ -4,6 +4,7 @@ const productSlice = createSlice({
     name:'Products',
     initialState:{
         ProductList:[],
+        productIdData:["paras"],
         isLoading:false,
     },
     reducers:{
@@ -12,11 +13,14 @@ const productSlice = createSlice({
         },
         setIsloading:(state,action)=>{
             state.isLoading = action.payload;
+        },
+        setproductIdData:(state,action)=>{
+            state.productIdData = action.payload;
         }
     }
 })
 
 
-export const  {setProductList,setIsloading}  = productSlice.actions;
+export const  {setProductList,setproductIdData,setIsloading}  = productSlice.actions;
 export const  productreducer  = productSlice.reducer;;
 
