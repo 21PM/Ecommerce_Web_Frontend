@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { FaHome, FaSearch, FaHeart, FaUser, FaChevronDown } from 'react-icons/fa';
 import axios from 'axios';
 import { setProductList } from '../Slices/ProductListSlice';
@@ -8,16 +8,16 @@ import { useSelector } from 'react-redux';
 import toast, { Toaster } from 'react-hot-toast';
 import { setIsloading } from '../Slices/ProductListSlice';
 import { Link, useNavigate } from 'react-router-dom';
+import { setSkipCount,setHasMoreData,setPreviousSelectedCategory,setSelectedCategory,setSearchTerm } from '../Slices/ProductListSlice';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setisSearching] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const ProductList = useSelector((store)=>store.products?.ProductList)
 
+  const[totalCount,settotalCount] = useState(0);
 
+  const {ProductList,isLoading,hasMoreData,searchTerm,selectedCategory,skipCount,previousSelectedCategory} = useSelector((store)=>store?.products)
 
 
 
@@ -65,11 +65,22 @@ const Navbar = () => {
       getAllProducts()
       return;
     }
+  
         try{
+         
           dispatch(setIsloading(true))
-          const response = await axios.get(`https://dummyjson.com/products/category/${selectedCategory}`)
-          console.log(response.data.products);
+          const response = await axios.get(`https://dummyjson.com/products/category/${selectedCategory}?limit=10&skip=0`)
+          console.log("from navbar response ",response);
           dispatch(setProductList(response.data.products))
+
+          if(response.data.total > 10){
+            dispatch(setPreviousSelectedCategory(selectedCategory))
+                dispatch(setSkipCount(skipCount + 10));
+          } else{
+            // dispatch(setHasMoreData(false))
+
+          }
+
         }catch(e){
             toast.error("Error while fetch categorised data")
         }finally{
@@ -108,6 +119,7 @@ const Navbar = () => {
   },[selectedCategory])
 
 
+
   useEffect(()=>{
     if(searchTerm !== '' && searchTerm !== " "){
       console.log("a");
@@ -125,19 +137,23 @@ const Navbar = () => {
   },[searchTerm])
 
 
-
   const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+    dispatch(setSearchTerm(e.target.value));
     naviage("/")
     {!isSearching && setisSearching(true)}
   };
 
   const handleCategorySelect = (category) => {
-    setSelectedCategory(category);
+    dispatch(setSelectedCategory(category));
+    // dispatch(setHasMoreData(true))
+    dispatch(setSkipCount(0))
     naviage("/")    
     
     setIsDropdownOpen(false); // Close the dropdown after selection
   };
+
+
+
 
   return (
     <nav className="bg-blue-900 text-white">
@@ -183,7 +199,7 @@ const Navbar = () => {
                     <h2
                       key={category}
                       onClick={() => handleCategorySelect(category)}
-                      className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-blue-700"
+                      className="block w-full text-left px-4 py-2 text-sm cursor-pointer text-white hover:bg-blue-700"
                     >
                       {category.substr(0,1).toUpperCase() + category.substr(1,category.length+1).toLowerCase()}
                     </h2>
@@ -261,7 +277,7 @@ const Navbar = () => {
                   <button
                     key={category}
                     onClick={() => handleCategorySelect(category)}
-                    className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-blue-700"
+                    className="block w-full text-left px-4 py-2 text-sm cursor-pointer text-white hover:bg-blue-700"
                   >
                     {category.substr(0,1).toUpperCase() + category.substr(1,category.length+1).toLowerCase()}
                   </button>

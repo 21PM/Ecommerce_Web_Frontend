@@ -10,7 +10,7 @@ function ProductwithID() {
   const productIdData = useSelector((store)=>store.products?.productIdData);
   const dispatch = useDispatch();
   const [showSelectedProductImage,setShowSelectedProductImage] = useState("");
-
+  
   useEffect(() => {
     const getProductFromId = async () => {
       console.log(id);

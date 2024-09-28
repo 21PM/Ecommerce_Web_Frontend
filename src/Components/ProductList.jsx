@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { setSkipCount,setHasMoreData,setPreviousSelectedCategory,setSelectedCategory,setSearchTerm ,setProductList} from '../Slices/ProductListSlice';
+
 
 // const productsdata = [
 //     {
@@ -69,23 +71,69 @@ import { useNavigate } from 'react-router-dom';
 
 const ProductList = () => {
 
-  const ProductList = useSelector((store)=>store.products?.ProductList)
-  const isLoading = useSelector((store)=>store.products?.isLoading)
+  const {ProductList,isLoading,hasMoreData,searchTerm,selectedCategory,skipCount,previousSelectedCategory} = useSelector((store)=>store?.products)
+
   const navigate = useNavigate();
 
 
   const handleBuyNow = (id) => {
-    console.log(`Buy Now clicked for product ID: ${id}`);
+    // console.log(`Buy Now clicked for product ID: ${id}`);
   };
 
   const handleAddToWishlist = (id) => {
-    console.log(`Added to Wishlist: Product ID: ${id}`);
+    // console.log(`Added to Wishlist: Product ID: ${id}`);
   };
 
   const handleProductClick = (id) => {
     navigate(`/product/${id}`); // Navigate to ProductwithID with the product ID
   };
 
+  const dispatch = useDispatch()
+
+
+  useEffect(()=>{
+      console.log(skipCount);
+      console.log(selectedCategory);
+      
+  },[skipCount])
+
+  const getCategorisedProductData = async()=>{
+  
+      try{
+        
+        const response = await axios.get(`https://dummyjson.com/products/category/${selectedCategory}?limit=10&skip=${skipCount}`)
+        if(skipCount > 0){
+          const oldArray = [...ProductList,...response.data.products]
+          dispatch(setProductList(oldArray))
+        }
+        if(response.data.total > 10){
+          dispatch(setPreviousSelectedCategory(selectedCategory))
+              dispatch(setSkipCount(skipCount + 10));
+        } else{
+          // dispatch(setHasMoreData(false))
+
+        }
+        
+      }catch(e){
+        console.log("error in list jsx",e);
+        
+      }
+      
+
+  }
+
+
+  function handleScroll (){
+
+    if(window.innerHeight  + document.documentElement.scrollTop + 1 >= document.documentElement.scrollHeight){
+      console.log("paras more "); 
+      getCategorisedProductData()   
+    }
+  }
+  useEffect(()=>{
+    window.addEventListener("scroll",handleScroll)
+    return ()=> window.removeEventListener("scroll",handleScroll)
+  },[selectedCategory,skipCount])
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 place-items-center">
@@ -101,7 +149,7 @@ const ProductList = () => {
         <div 
         onClick={() => handleProductClick(product.id)}
         key={product.id} className="max-w-xs cursor-pointer sm:max-w-sm md:max-w-md min-h-full bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="h-52 w-full bg-green-500 overflow-hidden flex justify-center items-center">
+          <div className="h-52 w-full bg-gray-300 overflow-hidden flex justify-center items-center">
             <img 
               src={product.images[0]} 
               alt={product.title} 
@@ -124,7 +172,7 @@ const ProductList = () => {
             </button>
             <button 
               className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-4 rounded mt-2 sm:mt-0 sm:ml-4 w-full sm:w-auto" 
-              onClick={() => handleAddToWishlist(product.id)}
+              // onClick={() => handleAddToWishlist(product.id)}
             >
               Add to Wishlist
             </button>
