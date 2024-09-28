@@ -277,7 +277,7 @@ const Navbar = () => {
                   <button
                     key={category}
                     onClick={() => handleCategorySelect(category)}
-                    className="block w-full text-left px-4 py-2 text-sm cursor-pointer text-white hover:bg-blue-700"
+                    className="block w-full text-left px-4 py-2 text-sm cursor-pointer+ text-white hover:bg-blue-700"
                   >
                     {category.substr(0,1).toUpperCase() + category.substr(1,category.length+1).toLowerCase()}
                   </button>

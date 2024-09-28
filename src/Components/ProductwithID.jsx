@@ -76,6 +76,10 @@ function ProductwithID() {
           <strong>Availability:</strong> {productIdData?.availabilityStatus || "Available"}
         </p>
 
+        <div className='py-2'>
+  <p>        <span className='font-bold'>Description : </span>{productIdData?.description || "Description"}</p>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mt-6">
           <button className="bg-blue-900 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-500">
